@@ -6,7 +6,7 @@ class CavTools_ControllerPublic_MeetingGenerator extends XenForo_ControllerPubli
     // - Generate meetings
     // - Store meetings
     // - Present meetings
-    // - Record/take attendance with bot?
+    // - take attendance with bot (https://docs.planetteamspeak.com/ts3/php/framework/index.html)
     // - Site route
     // - Site options
     // - Site perms
