@@ -1,0 +1,45 @@
+<div class="section">
+    <h1 class="heading">Meeting Generator</h1>
+    <br />
+    <br />
+    <form action="{xen:link MeetingGenerator/post}" method="post" class="xenForm AutoValidator" data-redirect="on">
+
+        <dl class="ctrlUnit">
+            <dt><label for="ctrl_message">Department</label></dt>
+            <dd>
+                <select name="department" class="textCtrl" required>
+                    <xen:foreach loop="$departments" value="$department">
+                        <option value="{xen:raw $department}">{xen:raw $department}</option>
+                    </xen:foreach>
+                </select>
+                <p class="explain">Select the department needed for your meeting. Choose 'Other' if
+                not applicable.</p>
+            </dd>
+        </dl>
+
+        <dl class="ctrlUnit">
+            <dt><label for="ctrl_message">Meeting text<br/><br/></label></dt>
+            <dd>
+                <textarea name="meeting_text" id="ctrl_message" class="textCtrl" rows="12" cols="50"></textarea>
+                <p class="explain">Enter the text including BBCode for your meeting post</p>
+            </dd>
+        </dl>
+
+        <dl class="ctrlUnit">
+            <dt><label for="ctrl_message">Meeting date</label></dt>
+            <dd>
+                <input id="ctrl_message" type="date" class="textCtrl autoSize" name="meeting_date"/>
+            </dd>
+        </dl>
+
+        <dl class="ctrlUnit">
+            <dt><label for="ctrl_recipients">Attendee(s)</label></dt>
+            <dd>
+                <textarea name="attendees" id="ctrl_recipients" rows="3" cols="50" class="textCtrl AutoComplete
+                {xen:if '{$remaining} == 1', AcSingle}"></textarea>
+                <p class="explain">Separate names with a comma.</p>
+            </dd>
+        </dl>
+
+    </form>
+</div>

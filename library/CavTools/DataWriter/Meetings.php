@@ -12,6 +12,7 @@ class CavTools_DataWriter_Meetings extends XenForo_DataWriter {
         return array(
             'xf_ct_regi_meetings' => array(
                 'meeting_id' => array('type' => self::TYPE_UINT, 'autoIncrement' => true),
+                'department' => array('type' => self::TYPE_STRING),
                 'meeting_text' => array('type' => self::TYPE_STRING),
                 'poster_id' => array('type' => self::TYPE_STRING),
                 'posted_date' => array('type' => self::TYPE_FLOAT),

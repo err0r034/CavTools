@@ -37,4 +37,17 @@ class CavTools_Model_IMOBot extends XenForo_Model {
                 ->performRequest();
         }
     }
+
+    public function getBot($userID)
+    {
+        $botUsername = $this->_getDb()->fetchRow("
+                            SELECT *
+                            FROM xf_user
+                            WHERE user_id = '$userID'
+        ");
+
+        $username = $botUsername['username'];
+        return $bot = array('userID' => $userID,
+            'username' => $username);
+    }
 }
