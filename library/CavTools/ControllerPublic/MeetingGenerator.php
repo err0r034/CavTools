@@ -21,9 +21,8 @@ class CavTools_ControllerPublic_MeetingGenerator extends XenForo_ControllerPubli
 	public function getIMOBot()
 	{
 		//Get values from options
-		$userID = XenForo_Application::get('options')->botID;
 		$model = _getImoBotModel();
-		$bot = $model->getBot($userID);
+		$bot = $model->getBot();
 		return $bot;
 	}
 
@@ -79,7 +78,7 @@ class CavTools_ControllerPublic_MeetingGenerator extends XenForo_ControllerPubli
 		// Add meeting topic to the database
 		// +
 		// html form
-		$meetingTopic = $this->_input->filterSingle('meeting_topc', XenForo_Input::STRING);
+		$meetingTopic = $this->_input->filterSingle('meeting_topic', XenForo_Input::STRING);
 		$meetingText = $this->_input->filterSingle('meeting_text', XenForo_Input::STRING);
 		$date = $this->_input->filterSingle('date', XenForo_Input::STRING);
 		$time = $this->_input->filterSingle('time', XenForo_Input::STRING);
@@ -88,7 +87,7 @@ class CavTools_ControllerPublic_MeetingGenerator extends XenForo_ControllerPubli
 		$meetingText = htmlspecialchars($meetingText);
 		$time = htmlspecialchars($time);
 		$date = htmlspecialchars($date);
-		$attendees = $this->_input->filterSingle($attendees);
+		$attendees = htmlspecialchars($attendees);
 
 		$convertDate = new DateTime("$date");
 		$date = $convertDate->format('U');
@@ -101,16 +100,16 @@ class CavTools_ControllerPublic_MeetingGenerator extends XenForo_ControllerPubli
 
 		// make thread title + content
 		$title = createTitle($date, $department, $topic);
-		$content = $createContent(FIX ME);
+		$content = createContent($date, $deparment, $visitor, $meetingText);
+		$threadID = $createThread($title, $content, $forumID);
 
-
-
-
+		$saveData();
 	}
 
-	public function createThread()
+	public function createThread($title, $content, $forumID)
 	{
 		// get bot values
+		$poster = $this->getIMOBot();
 
 		// write the thread
 		$writer = XenForo_DataWriter::create('XenForo_DataWriter_Discussion_Thread');
@@ -141,37 +140,54 @@ class CavTools_ControllerPublic_MeetingGenerator extends XenForo_ControllerPubli
 		return $title;
 	}
 
-	public function createContent()
+	public function createContent($date, $deparment, $visitor, $attendees, $meetingText)
 	{
 		// Get Meeting model
-		$model = _getMeetingModel();
+		$model = $this->_getMeetingModel();
 		$newline = "/n";
 
 		$formatedDate = date('l the jS of J', $date); // Monday the 2nd of September
 		$rank = $model->getRank($visitor['user_id']);
 
+		// Make sure we check if they are able to type first because they might not and its bad
+
 		$header = $department . " meeting schedualed for " . $formatedDate . $newline;
 		$header .= $newline . "Organised by: " . $rank . " " . $visitor['username'] . $newline . $newline;
 
-		// TODO:
-		// Create content for attendance -:
-		// -------
-		// RNK.Last.F - Waiting
-		// -------
-		// RNK.Last.F - Present
-		// -------
-		// RNK.Last.F - Approved Absence
-		// -------
-		// RNK.Last.F - Absent
-
-		// Perhaps use sepperate function
-
-		$attendance = "";
+		$attendance = $this->attendanceTable($attendees);
 
 		$main = $meetingText;
 
 		// Return the content
 		return $header . $attendance . $main;
+	}
+
+	public function attendanceTable($attendees)
+	{
+		$home = XenForo_Application::get('options')->homeURL;
+		$attendees = explode(',', $attendees);
+
+		$table = "[table]" . $newLine . "|-". $newLine  . "| class=\"primaryContent\" colspan=\"4\" align=\"center\" | AWOL Tracking" .
+            $newLine . "|- " . $newLine . "| style=\"font-style: italic\" align=\"center\" |Member" . $newLine . "| style=\"font-style: italic\" align=\"center\" |Position" .
+            $newLine . "| style=\"font-style: italic\" align=\"center\" |Status" . $newLine . "|-" . $newLine;
+
+		// Generate table
+	    foreach($attendees as $attendee) {
+
+			// get milpac model
+			$model = $this->_getMilpacModel();
+
+	        $position = $model->milpacsPosition($attendee);
+	        $username = $model->getUsername($attendee);
+			$status = "Waiting";
+
+	        // Build username
+	        $username = '[B][URL="http://'.$home.'/members/'.$attendee.'/"]'. $username.'[/URL][/B]';
+
+	        $table .= "| align=\"center\" |".$username." || align=\"center\" |".$position." || align=\"center\" |".$status. $newLine . "|-" . $newLine;
+	    }
+	    // Close table
+	    $table .= "[/table]";
 	}
 
 	protected function _getImoBotModel()
@@ -182,5 +198,10 @@ class CavTools_ControllerPublic_MeetingGenerator extends XenForo_ControllerPubli
 	protected function _getMeetingModel()
 	{
 		return $this->getModelFromCache ( 'CavTools_Model_Meetings' );
+	}
+
+	protected function _getMilpacModel()
+	{
+		return $this->getModelFromCache( 'CavTools_Model_Milpac' )
 	}
 }

@@ -38,8 +38,9 @@ class CavTools_Model_IMOBot extends XenForo_Model {
         }
     }
 
-    public function getBot($userID)
+    public function getBot()
     {
+        $userID = XenForo_Application::get('options')->botID;
         $botUsername = $this->_getDb()->fetchRow("
                             SELECT *
                             FROM xf_user
