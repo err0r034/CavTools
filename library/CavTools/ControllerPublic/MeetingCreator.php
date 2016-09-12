@@ -1,6 +1,6 @@
 <?php
 
-class CavTools_ControllerPublic_MeetingGenerator extends XenForo_ControllerPublic_Abstract
+class CavTools_ControllerPublic_MeetingCreator extends XenForo_ControllerPublic_Abstract
 {
 	// TODO:
 	// - Generate meetings
@@ -21,7 +21,7 @@ class CavTools_ControllerPublic_MeetingGenerator extends XenForo_ControllerPubli
 	public function getIMOBot()
 	{
 		//Get values from options
-		$model = _getImoBotModel();
+		$model = $this->_getImoBotModel();
 		$bot = $model->getBot();
 		return $bot;
 	}
@@ -45,7 +45,7 @@ class CavTools_ControllerPublic_MeetingGenerator extends XenForo_ControllerPubli
 			throw $this->getNoPermissionResponseException();
 		}
 
-		if (!XenForo_Visitor::getInstance()->hasPermission('CavToolsGroupId', 'CreateMeeting'))
+		if (!XenForo_Visitor::getInstance()->hasPermission('CavToolsGroupId', 'createMeeting'))
 		{
 			throw $this->getNoPermissionResponseException();
 		}
@@ -55,11 +55,12 @@ class CavTools_ControllerPublic_MeetingGenerator extends XenForo_ControllerPubli
 
 		//Get values from options
 		$departments = XenForo_Application::get('options')->departments;
-
 		$departments = explode(',', $departments);
+        $timeOptions = $this->createTimeOptions();
 
 		//View Parameters
 		$viewParams = array(
+		    'timeOptions' => $timeOptions,
 			'departments' => $departments
 		);
 
@@ -67,18 +68,33 @@ class CavTools_ControllerPublic_MeetingGenerator extends XenForo_ControllerPubli
 		return $this->responseView('CavTools_ViewPublic_CreateMeeting', 'CavTools_CreateMeeting', $viewParams);
 	}
 
+    // Get time options 0000 - 2300
+    public function createTimeOptions()
+    {
+        $timeOptions = array();
+        for ($i=0;$i<24;$i++)
+        {
+            if ($i < 10) {
+                // 06:00
+                $timeValue ="0" . $i . "00";
+            } else {
+                // 14:00
+                $timeValue = $i . "00";
+            }
+            // 00:00, 01:00
+            array_push($timeOptions, $timeValue);
+        }
+        return $timeOptions;
+    }
+
 	public function actionPost()
 	{
 		// The user data from the visitor
 		$visitor  = XenForo_Visitor::getInstance()->toArray();
 
 		// Form values
-		$department = $this->_input->filterSingle('department', XenForo_Input::STRING);
-		// TODO
-		// Add meeting topic to the database
-		// +
-		// html form
 		$meetingTopic = $this->_input->filterSingle('meeting_topic', XenForo_Input::STRING);
+        $department = $this->_input->filterSingle('department', XenForo_Input::STRING);
 		$meetingText = $this->_input->filterSingle('meeting_text', XenForo_Input::STRING);
 		$date = $this->_input->filterSingle('date', XenForo_Input::STRING);
 		$time = $this->_input->filterSingle('time', XenForo_Input::STRING);
@@ -88,6 +104,8 @@ class CavTools_ControllerPublic_MeetingGenerator extends XenForo_ControllerPubli
 		$time = htmlspecialchars($time);
 		$date = htmlspecialchars($date);
 		$attendees = htmlspecialchars($attendees);
+		$attendees = str_replace(' ', '', $attendees);
+		$attendees = rtrim($attendees, ",");
 
 		$convertDate = new DateTime("$date");
 		$date = $convertDate->format('U');
@@ -99,11 +117,19 @@ class CavTools_ControllerPublic_MeetingGenerator extends XenForo_ControllerPubli
 		$forumID = XenForo_Application::get('options')->meetingForumID;
 
 		// make thread title + content
-		$title = createTitle($date, $department, $topic);
-		$content = createContent($date, $deparment, $visitor, $meetingText);
-		$threadID = $createThread($title, $content, $forumID);
+		$title = $this->createTitle($date, $department, $meetingTopic);
+		$content = $this->createContent($date, $department, $visitor, $attendees, $meetingText);
+		$threadID = $this->createThread($title, $content, $forumID);
 
-		$saveData();
+		$this->saveData($department, $meetingText, $visitor,
+						$date, $attendees, $meetingTopic, $time);
+
+        // redirect after post
+        return $this->responseRedirect(
+            XenForo_ControllerResponse_Redirect::SUCCESS,
+            XenForo_Link::buildPublicLink('threads', array('thread_id' => $threadID)), // 7cav.us/threads/123
+            new XenForo_Phrase('event_created')
+        );
 	}
 
 	public function createThread($title, $content, $forumID)
@@ -117,7 +143,7 @@ class CavTools_ControllerPublic_MeetingGenerator extends XenForo_ControllerPubli
 		$writer->set('username', $poster['username']);
 		$writer->set('title', $title);
 		$postWriter = $writer->getFirstMessageDw();
-		$postWriter->set('message', $message);
+		$postWriter->set('message', $content);
 		$writer->set('node_id', $forumID);
 		$writer->set('sticky', true);
 		$writer->preSave();
@@ -125,10 +151,18 @@ class CavTools_ControllerPublic_MeetingGenerator extends XenForo_ControllerPubli
 		return $writer->getDiscussionId();
 	}
 
-	public function saveData()
+	public function saveData($department, $meetingText, $poster,
+					$meetingDate, $attendees, $meetingTopic, $time)
 	{
 		$dw = XenForo_DataWriter::create('CavTools_DataWriter_Meetings');
-		// Do data values
+		$dw->set('department', $department);
+		$dw->set('meeting_text', $meetingText);
+		$dw->set('poster_id', $poster['user_id']);
+		$dw->set('posted_date', date('U'));
+		$dw->set('meeting_date', $meetingDate);
+		$dw->set('attendees', $attendees);
+		$dw->set('meeting_topic', $meetingTopic);
+		$dw->set('meeting_time', $time);
 		$dw->save();
 	}
 
@@ -136,25 +170,25 @@ class CavTools_ControllerPublic_MeetingGenerator extends XenForo_ControllerPubli
 	{
 		// Meeting: Department | Topic | 01JAN16
 		$formatedDate = date('dMy', $date); // 13Jun2016
-		$title = $deparment . " | " . $topic . " | " . $formatedDate;
+		$title = $department . " | " . $topic . " | " . $formatedDate;
 		return $title;
 	}
 
-	public function createContent($date, $deparment, $visitor, $attendees, $meetingText)
+	public function createContent($date, $department, $visitor, $attendees, $meetingText)
 	{
 		// Get Meeting model
 		$model = $this->_getMeetingModel();
-		$newline = "/n";
+		$newline = "\n";
 
-		$formatedDate = date('l the jS of J', $date); // Monday the 2nd of September
+		$formattedDate = date('l jS F', $date);
 		$rank = $model->getRank($visitor['user_id']);
 
 		// Make sure we check if they are able to type first because they might not and its bad
 
-		$header = $department . " meeting schedualed for " . $formatedDate . $newline;
+		$header = $department . " meeting scheduled for " . $formattedDate . $newline;
 		$header .= $newline . "Organised by: " . $rank . " " . $visitor['username'] . $newline . $newline;
 
-		$attendance = $this->attendanceTable($attendees);
+		$attendance = $this->attendanceTable($attendees) . $newline . $newline;
 
 		$main = $meetingText;
 
@@ -166,8 +200,9 @@ class CavTools_ControllerPublic_MeetingGenerator extends XenForo_ControllerPubli
 	{
 		$home = XenForo_Application::get('options')->homeURL;
 		$attendees = explode(',', $attendees);
+        $newLine = "\n";
 
-		$table = "[table]" . $newLine . "|-". $newLine  . "| class=\"primaryContent\" colspan=\"4\" align=\"center\" | AWOL Tracking" .
+		$table = "[table]" . $newLine . "|-". $newLine  . "| class=\"primaryContent\" colspan=\"3\" align=\"center\" | Meeting Attendance" .
             $newLine . "|- " . $newLine . "| style=\"font-style: italic\" align=\"center\" |Member" . $newLine . "| style=\"font-style: italic\" align=\"center\" |Position" .
             $newLine . "| style=\"font-style: italic\" align=\"center\" |Status" . $newLine . "|-" . $newLine;
 
@@ -178,16 +213,22 @@ class CavTools_ControllerPublic_MeetingGenerator extends XenForo_ControllerPubli
 			$model = $this->_getMilpacModel();
 
 	        $position = $model->milpacsPosition($attendee);
-	        $username = $model->getUsername($attendee);
+	        $user = $model->getUser($attendee);
+			$username = $user['username'];
+			$userID = $user['user_id'];
 			$status = "Waiting";
 
+			// TODO:
+			// Generalize, we don't want to enter each 
+			// username for things like the CSC
+
 	        // Build username
-	        $username = '[B][URL="http://'.$home.'/members/'.$attendee.'/"]'. $username.'[/URL][/B]';
+	        $username = '[B][URL="http://'.$home.'/members/'.$userID.'/"]'. $username.'[/URL][/B]';
 
 	        $table .= "| align=\"center\" |".$username." || align=\"center\" |".$position." || align=\"center\" |".$status. $newLine . "|-" . $newLine;
 	    }
 	    // Close table
-	    $table .= "[/table]";
+	    return $table .= "[/table]";
 	}
 
 	protected function _getImoBotModel()
@@ -202,6 +243,6 @@ class CavTools_ControllerPublic_MeetingGenerator extends XenForo_ControllerPubli
 
 	protected function _getMilpacModel()
 	{
-		return $this->getModelFromCache( 'CavTools_Model_Milpac' )
+		return $this->getModelFromCache( 'CavTools_Model_Milpac' );
 	}
 }

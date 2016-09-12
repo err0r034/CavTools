@@ -48,7 +48,7 @@ class CavTools_Model_IMOBot extends XenForo_Model {
         ");
 
         $username = $botUsername['username'];
-        return $bot = array('userID' => $userID,
+        return $bot = array('user_id' => $userID,
             'username' => $username);
     }
 }

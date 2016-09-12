@@ -2,7 +2,7 @@
     <h1 class="heading">Meeting Generator</h1>
     <br />
     <br />
-    <form action="{xen:link MeetingGenerator/post}" method="post" class="xenForm AutoValidator" data-redirect="on">
+    <form action="{xen:link createmeeting/post}" method="post" class="xenForm AutoValidator" data-redirect="on">
 
         <dl class="ctrlUnit">
             <dt><label for="ctrl_message">Department</label></dt>
@@ -39,7 +39,14 @@
                 <input id="ctrl_message" type="date" class="textCtrl autoSize" name="meeting_date"/>
             </dd>
         </dl>
-
+        <dl class="ctrlUnit">
+            <dt><label for="ctrl_message">Event time (in zulu)</label></dt>
+            <dd><select name="meeting_time" class="textCtrl" required>
+                <xen:foreach loop="$timeOptions" value="$timeOption">
+                    <option value="{xen:raw $timeOption}">{xen:raw $timeOption}</option>
+                </xen:foreach>
+            </select></dd>
+        </dl>
         <dl class="ctrlUnit">
             <dt><label for="ctrl_recipients">Attendee(s)</label></dt>
             <dd>
@@ -48,6 +55,9 @@
                 <p class="explain">Separate names with a comma.</p>
             </dd>
         </dl>
-
+        <dl class="ctrlUnit submitUnit">
+            <dt></dt>
+            <dd><input type="submit" value="Submit Application" class="button primary" accesskey="s" /></dd>
+        </dl>
     </form>
 </div>

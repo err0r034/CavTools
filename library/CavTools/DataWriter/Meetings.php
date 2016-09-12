@@ -18,6 +18,7 @@ class CavTools_DataWriter_Meetings extends XenForo_DataWriter {
                 'poster_id' => array('type' => self::TYPE_STRING),
                 'posted_date' => array('type' => self::TYPE_FLOAT),
                 'meeting_date' => array('type' => self::TYPE_FLOAT),
+                'meeting_time' => array('type' => self::TYPE_FLOAT),
                 'attendees' => array('type' => self::TYPE_STRING),
                 'hidden' => array('type' => self::TYPE_BOOLEAN, 'default' => 0),
             )
