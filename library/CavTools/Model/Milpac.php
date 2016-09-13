@@ -39,6 +39,34 @@ class CavTools_Model_Milpac extends XenForo_Model {
                 WHERE user_id = '$userID'
                 OR username = '$username'
                 ");
-        
+    }
+
+    public function getRank($userID)
+    {
+        return $this->_getDb()->fetchRow("
+        SELECT title
+        FROM xf_pe_roster_rank
+        INNER JOIN xf_pe_roster_user_relation
+        ON xf_pe_roster_rank.rank_id = xf_pe_roster_user_relation.rank_id
+        WHERE xf_pe_roster_user_relation.user_id = '$userID'
+        ")
+    }
+
+    public function getUsersFromGroup($groupID)
+    {
+        $positions = $this->_getDb()->fetchAll("
+        SELECT *
+        FROM xf_pe_roster_position
+        WHERE position_group_id = '$groupID'
+        ");
+
+        $users = $this->_getDb()->fetchAll("
+        SELECT *
+        FROM xf_pe_roster_user_relation
+        WHERE position_id IN (".implode(',',$positions['position_id']).")
+        OR CAST(secondary_position_ids AS CHAR(100)) IN (".implode(',',$positions['position_id']).")
+        ");
+
+        return $users['user_id'];
     }
 }
