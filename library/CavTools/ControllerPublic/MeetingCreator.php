@@ -58,13 +58,13 @@ class CavTools_ControllerPublic_MeetingCreator extends XenForo_ControllerPublic_
 		$departments = explode(',', $departments);
         $timeOptions = $this->createTimeOptions();
 
-		//View Parameters
+		// View Parameters
 		$viewParams = array(
 		    'timeOptions' => $timeOptions,
 			'departments' => $departments
 		);
 
-		//Send to template to display
+		// Send to template to display
 		return $this->responseView('CavTools_ViewPublic_CreateMeeting', 'CavTools_CreateMeeting', $viewParams);
 	}
 
@@ -205,6 +205,7 @@ class CavTools_ControllerPublic_MeetingCreator extends XenForo_ControllerPublic_
 		$table = "[table]" . $newLine . "|-". $newLine  . "| class=\"primaryContent\" colspan=\"3\" align=\"center\" | Meeting Attendance" .
             $newLine . "|- " . $newLine . "| style=\"font-style: italic\" align=\"center\" |Member" . $newLine . "| style=\"font-style: italic\" align=\"center\" |Position" .
             $newLine . "| style=\"font-style: italic\" align=\"center\" |Status" . $newLine . "|-" . $newLine;
+
 
 		// Generate table
 	    foreach($attendees as $attendee) {

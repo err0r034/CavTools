@@ -69,4 +69,13 @@ class CavTools_Model_Milpac extends XenForo_Model {
 
         return $users['user_id'];
     }
+
+    public function getAllMilpacPositions()
+    {
+        return $this->_getDb()->fetchAll("
+        SELECT position_id, position_title
+        FROM xf_pe_roster_position
+        ORDER BY materialized_order ASC
+        ");
+    }
 }

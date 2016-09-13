@@ -1,3 +1,4 @@
+<xen:require css="CavTools_CreateMeeting.css" />
 <div class="section">
     <h1 class="heading">Meeting Generator</h1>
     <br />
@@ -48,12 +49,22 @@
             </select></dd>
         </dl>
         <dl class="ctrlUnit">
-            <dt><label for="ctrl_recipients">Attendee(s)</label></dt>
-            <dd>
-                <textarea name="attendees" id="ctrl_recipients" rows="3" cols="50" class="textCtrl AutoComplete
-                {xen:if '{$remaining} == 1', AcSingle}"></textarea>
-                <p class="explain">Separate names with a comma.</p>
-            </dd>
+            <div class="col">
+                <dd><input type="checkbox" name="name_agree" value="agreement" required>      Command Staff<br></dd>
+                <dd><input type="checkbox" name="name_agree" value="agreement" required>      1-7 HQ<br></dd>
+                <dd><input type="checkbox" name="name_agree" value="agreement" required>      A/1-7<br></dd>
+            </div>
+            <div class="col">
+                <dd><input type="checkbox" name="name_agree" value="agreement" required>      B/1-7<br></dd>
+                <dd><input type="checkbox" name="name_agree" value="agreement" required>      C/1-7<br></dd>
+                <dd><input type="checkbox" name="name_agree" value="agreement" required>      D/1-7<br></dd>
+            </div>
+            <div class="col">
+                <dd><input type="checkbox" name="name_agree" value="agreement" required>      2-7 HQ<br></dd>
+                <dd><input type="checkbox" name="name_agree" value="agreement" required>      B/2-7<br></dd>
+                <dd><input type="hidden" name="name_agree" value="agreement" required><br></dd>
+            </div>
+
         </dl>
         <dl class="ctrlUnit submitUnit">
             <dt></dt>
