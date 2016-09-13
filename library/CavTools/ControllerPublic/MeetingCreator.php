@@ -20,7 +20,7 @@ class CavTools_ControllerPublic_MeetingCreator extends XenForo_ControllerPublic_
 
 	public function getIMOBot()
 	{
-		//Get values from options
+		// Get values from options
 		$model = $this->_getImoBotModel();
 		$bot = $model->getBot();
 		return $bot;
@@ -219,7 +219,7 @@ class CavTools_ControllerPublic_MeetingCreator extends XenForo_ControllerPublic_
 			$status = "Waiting";
 
 			// TODO:
-			// Generalize, we don't want to enter each 
+			// Generalize, we don't want to enter each
 			// username for things like the CSC
 
 	        // Build username
