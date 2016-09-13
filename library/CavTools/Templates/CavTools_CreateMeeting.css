@@ -1,0 +1,8 @@
+.col {
+    display: inline-block;
+    width: 33%;
+}
+.col dt {
+    padding-top: 0.4em;
+    padding-bottom: 0.4em;
+}
