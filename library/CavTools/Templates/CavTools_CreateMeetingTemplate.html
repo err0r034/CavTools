@@ -1,0 +1,33 @@
+<xen:require css="CavTools_CreateMeeting.css" />
+<div class="section">
+    <h1 class="heading">Meeting Generator</h1>
+    <br />
+    <br />
+    <form action="{xen:link meetingtemplate/post}" method="post" class="xenForm AutoValidator" data-redirect="on">
+
+        <dl class="ctrlUnit fullWidth surplusLabel">
+			<dd><input type="text" name="meeting_title" class="textCtrl titleCtrl" id="ctrl_title_thread_create" maxlength="100" autofocus="true"
+				placeholder="Meeting title..."</dd>
+		</dl>
+
+        <dl class="ctrlUnit fullWidth">
+            <dt></dt>
+            <dd>{xen:raw $editorTemplate}</dd>
+        </dl>
+        <dl class="ctrlUnit">
+            <dt><label for="ctrl_positions">Milpac Positions:</label></dt>
+            <dd>
+                <ul>
+                    <li><select name="positions[]" id="ctrl_secondary_position_ids" size="7" multiple="multiple" class="textCtrl" style="min-width: 300px;">
+                        <xen:foreach loop="$positions" value="$position">
+                            <option value="{$position.position_id}">{$position.position_title}</option>
+                        </xen:foreach>
+                    </select></li>
+                </ul>
+            </dd>
+        </dl>
+        <dl class="ctrlUnit submitUnit">
+            <input type="submit" value="Create Meeting Template" class="button primary" accesskey="s" />
+        </dl>
+    </form>
+</div>

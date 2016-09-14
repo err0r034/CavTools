@@ -1,6 +1,6 @@
 <?php
 
-class CavTools_MeetingPreBake extends XenForo_ControllerPublic_Abstract {
+class CavTools_ControllerPublic_MeetingPreBake extends XenForo_ControllerPublic_Abstract {
 
     public function actionIndex()
     {
@@ -24,11 +24,12 @@ class CavTools_MeetingPreBake extends XenForo_ControllerPublic_Abstract {
 
         // View Parameters
         $viewParams = array(
-            'milpacPositions' => $positions
+            'defaultMessage' => "",
+            'positions' => $positions
         );
 
         // Send to template to display
-        return $this->responseView('CavTools_ViewPublic_CreateMeeting', 'CavTools_CreateMeeting', $viewParams);
+        return $this->responseView('CavTools_ViewPublic_MeetingPreBake', 'CavTools_CreateMeetingTemplate', $viewParams);
     }
 
     public function actionPost()

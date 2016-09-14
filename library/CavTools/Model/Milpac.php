@@ -49,7 +49,7 @@ class CavTools_Model_Milpac extends XenForo_Model {
         INNER JOIN xf_pe_roster_user_relation
         ON xf_pe_roster_rank.rank_id = xf_pe_roster_user_relation.rank_id
         WHERE xf_pe_roster_user_relation.user_id = '$userID'
-        ")
+        ");
     }
 
     public function getUsersFromGroup($groupID)
