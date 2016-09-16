@@ -15,9 +15,18 @@ class CavTools_Model_MeetingTemplate extends XenForo_Model
     {
         return $this->_getDb()->fetchAll("
         SELECT *
-        FROM xf_ct_regi_meetings
+        FROM xf_ct_regi_meeting_templates
         WHERE hidden = FALSE
-        ORDER BY meeting_id ASC
+        ORDER BY meeting_template_id ASC
+        ");
+    }
+
+    public function getTitleFromID($posID)
+    {
+        return $this->_getDb()->fetchRow("
+        SELECT position_title
+        FROM xf_pe_roster_position
+        WHERE position_id = '$posID'
         ");
     }
 }

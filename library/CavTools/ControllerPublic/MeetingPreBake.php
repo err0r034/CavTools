@@ -16,15 +16,38 @@ class CavTools_ControllerPublic_MeetingPreBake extends XenForo_ControllerPublic_
             throw $this->getNoPermissionResponseException();
         }
 
+        // Models
+        $meetingModel = $this->_getMeetingTemplateModel();
+        $milpacModel = $this->_getMilpacModel();
+
+        // Prepare templates
+        $templates = $meetingModel->getAllMeetingTemplates();
+        $memberURL = '/members/';
+        for ($i=0;$i<count($templates);$i++) {
+            $user = $milpacModel->getUser($templates[$i]['creator']);
+            $member = $memberURL . $templates[$i]['creator'];
+            $templates[$i]['username'] = "<a href=" . $member . "><b>" . $user['username'];
+            $templates[$i]['positions'] = unserialize($templates[$i]['positions']);
+            print_r($templates[$i]['positions']);
+            $reqPositions = "";
+            foreach ($templates[$i]['positions'] as $posID)
+            {
+                $title = $meetingModel->getTitleFromID($posID);
+                $reqPositions .= $title['position_title'] . ",\n";
+            }
+            $templates[$i]['milpacs'] = $reqPositions;
+        }
+
         // Set Time Zone to UTC
         date_default_timezone_set("UTC");
 
-        $model = $this->_getMilpacModel();
-        $positions = $model->getAllMilpacPositions();
+        // Prepare positions
+        $positions = $milpacModel->getAllMilpacPositions();
 
         // View Parameters
         $viewParams = array(
             'defaultMessage' => "",
+            'templates' => $templates,
             'positions' => $positions
         );
 
@@ -46,7 +69,7 @@ class CavTools_ControllerPublic_MeetingPreBake extends XenForo_ControllerPublic_
         $positions = serialize($positions);
 
         // Write data
-        $this->datawriter($meetingTitle, $meetingText, $positions);
+        $this->datawriter($meetingTitle, $meetingText, $positions, $visitor);
 
         // Redirect after post
         return $this->responseRedirect(
@@ -56,13 +79,14 @@ class CavTools_ControllerPublic_MeetingPreBake extends XenForo_ControllerPublic_
         );
     }
 
-    public function datawriter($meetingTitle, $meetingText, $positions)
+    public function datawriter($meetingTitle, $meetingText, $positions, $visitor)
     {
         // Datawriter
         $dw = XenForo_DataWriter::create('CavTools_DataWriter_MeetingPreBake');
         $dw->set('meeting_title', $meetingTitle);
         $dw->set('meeting_text', $meetingText);
         $dw->set('positions', $positions);
+        $dw->set('creator', $visitor['user_id']);
         $dw->save();
     }
 
@@ -70,5 +94,11 @@ class CavTools_ControllerPublic_MeetingPreBake extends XenForo_ControllerPublic_
     {
         // Milpac model
         return $this->getModelFromCache( 'CavTools_Model_Milpac' );
+    }
+
+    protected function _getMeetingTemplateModel()
+    {
+        // Meeting model
+        return $this->getModelFromCache( 'CavTools_Model_MeetingTemplate' );
     }
 }

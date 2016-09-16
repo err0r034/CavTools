@@ -15,6 +15,7 @@ class CavTools_DataWriter_MeetingPreBake extends XenForo_DataWriter {
                 'meeting_title' => array('type' => self::TYPE_STRING),
                 'meeting_text' => array('type' => self::TYPE_STRING),
                 'positions' => array('type' => self::TYPE_STRING),
+                'creator' => array('type' => self::TYPE_INT),
                 'hidden' => array('type' => self::TYPE_BOOLEAN, 'default' => 0),
             )
         );

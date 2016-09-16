@@ -1,9 +1,19 @@
 <xen:require css="CavTools_CreateMeeting.css" />
+<xen:require css="CavTools_EnlistmentManagement.css" />
 <div class="section">
     <h1 class="heading">Meeting Generator</h1>
     <br />
     <br />
     <form action="{xen:link meetingtemplate/post}" method="post" class="xenForm AutoValidator" data-redirect="on">
+
+        <dl class="ctrlUnit">
+            <dd>
+                <SELECT id="list" class="textCtrl">
+                    <OPTION VALUE="A">Create a template</option>
+                    <OPTION VALUE="B">View current templates</option>
+                </SELECT>
+            </dd>
+        </dl>
 
         <dl class="ctrlUnit fullWidth surplusLabel">
 			<dd><input type="text" name="meeting_title" class="textCtrl titleCtrl" id="ctrl_title_thread_create" maxlength="100" autofocus="true"
@@ -26,8 +36,29 @@
                 </ul>
             </dd>
         </dl>
+
+        <dl class="ctrlUnit">
+            <table>
+                <tr>
+                    <th>Template Title</th>
+                    <th>Template creator</th>
+                    <th>Positions required</th>
+                    <th>Remove Template</th>
+                </tr>
+                <xen:foreach loop="$templates" value="$template">
+                    <tr>
+                        <td>{xen:raw $template.meeting_title}</td>
+                        <td>{xen:raw $template.username}</td>
+                        <td>{xen:raw $template.milpacs}</td>
+                        <td><input type="checkbox" name="templates[]" value="{xen:raw $template.meeting_template_id}"></td>
+                    </tr>
+                </xen:foreach>
+            </table>
+        </dl>
+
         <dl class="ctrlUnit submitUnit">
-            <input type="submit" value="Create Meeting Template" class="button primary" accesskey="s" />
+            <input type="submit" value="Submit" class="button primary" accesskey="s" />
         </dl>
     </form>
+
 </div>
