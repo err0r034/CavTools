@@ -60,6 +60,9 @@ class CavTools_ControllerPublic_MeetingPreBake extends XenForo_ControllerPublic_
         // The user data from the visitor
         $visitor  = XenForo_Visitor::getInstance()->toArray();
 
+        // check what action we are doing
+
+
         // Form values
         $meetingTitle = $this->_input->filterSingle('meeting_title', XenForo_Input::STRING);
         $meetingText = $this->_input->filterSingle('meeting_text', XenForo_Input::STRING);

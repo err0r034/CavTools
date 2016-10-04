@@ -33,8 +33,8 @@ class CavTools_Model_IMOBot extends XenForo_Model {
 
             $twitter = new TwitterAPIExchange($settings);
             $twitter->buildOauth($url, $requestMethod)
-                ->setPostfields($postfields)
-                ->performRequest();
+            ->setPostfields($postfields)
+            ->performRequest();
         }
     }
 
@@ -42,13 +42,13 @@ class CavTools_Model_IMOBot extends XenForo_Model {
     {
         $userID = XenForo_Application::get('options')->botID;
         $botUsername = $this->_getDb()->fetchRow("
-                            SELECT *
-                            FROM xf_user
-                            WHERE user_id = '$userID'
+        SELECT *
+        FROM xf_user
+        WHERE user_id = '$userID'
         ");
 
         $username = $botUsername['username'];
         return $bot = array('user_id' => $userID,
-            'username' => $username);
+        'username' => $username);
     }
 }
