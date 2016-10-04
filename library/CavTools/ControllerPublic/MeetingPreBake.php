@@ -60,7 +60,8 @@ class CavTools_ControllerPublic_MeetingPreBake extends XenForo_ControllerPublic_
         // The user data from the visitor
         $visitor  = XenForo_Visitor::getInstance()->toArray();
 
-        // check what action we are doing
+        // TODO: Check which action we are doing
+        // TODO: If updating templates, work on those. Else stay with creating a meeting
 
 
         // Form values
