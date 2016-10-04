@@ -22,15 +22,15 @@
   },
   "lists": [
     {
-      "name": "Todo",
+      "name": "TODO",
       "hidden": false
     },
     {
-      "name": "Doing",
+      "name": "DOING",
       "hidden": false
     },
     {
-      "name": "Done",
+      "name": "DONE",
       "hidden": false
     }
   ],
