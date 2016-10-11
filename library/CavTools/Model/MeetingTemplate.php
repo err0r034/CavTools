@@ -16,7 +16,6 @@ class CavTools_Model_MeetingTemplate extends XenForo_Model
         return $this->_getDb()->fetchAll("
         SELECT *
         FROM xf_ct_regi_meeting_templates
-        WHERE hidden = FALSE
         ORDER BY meeting_template_id ASC
         ");
     }
@@ -28,5 +27,11 @@ class CavTools_Model_MeetingTemplate extends XenForo_Model
         FROM xf_pe_roster_position
         WHERE position_id = '$posID'
         ");
+    }
+
+    public function removeTemplate($templateIds)
+    {
+        $db = $this->_getDb();
+        $db->delete('xf_ct_regi_meeting_templates', 'meeting_template_id IN (' . $db->quote($templateIds) .')');
     }
 }

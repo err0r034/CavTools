@@ -28,7 +28,6 @@ class CavTools_ControllerPublic_MeetingPreBake extends XenForo_ControllerPublic_
             $member = $memberURL . $templates[$i]['creator'];
             $templates[$i]['username'] = "<a href=" . $member . "><b>" . $user['username'];
             $templates[$i]['positions'] = unserialize($templates[$i]['positions']);
-            print_r($templates[$i]['positions']);
             $reqPositions = "";
             foreach ($templates[$i]['positions'] as $posID)
             {
@@ -37,6 +36,8 @@ class CavTools_ControllerPublic_MeetingPreBake extends XenForo_ControllerPublic_
             }
             $templates[$i]['milpacs'] = $reqPositions;
         }
+
+        print_r($templates);
 
         // Set Time Zone to UTC
         date_default_timezone_set("UTC");
@@ -60,26 +61,30 @@ class CavTools_ControllerPublic_MeetingPreBake extends XenForo_ControllerPublic_
         // The user data from the visitor
         $visitor  = XenForo_Visitor::getInstance()->toArray();
 
-        // TODO: Check which action we are doing
-        // TODO: If updating templates, work on those. Else stay with creating a meeting
-
-
         // Form values
         $meetingTitle = $this->_input->filterSingle('meeting_title', XenForo_Input::STRING);
-        $meetingText = $this->_input->filterSingle('meeting_text', XenForo_Input::STRING);
-        $positions = $_POST['positions'];
+        $meetingText = $this->getHelper('Editor')->getMessageText('message', $this->_input);
+		$meetingText = XenForo_Helper_String::autoLinkBbCode($meetingText);
+        if (isset($_POST['positions'])) {
+            $positions = $_POST["positions"];
+            $phrase = new XenForo_Phrase('Meeting Pre-baked');
+            // Prepare array for storage
+            $positions = serialize($positions);
 
-        // Prepare array for storage
-        $positions = serialize($positions);
-
-        // Write data
-        $this->datawriter($meetingTitle, $meetingText, $positions, $visitor);
+            // Write data
+            $this->datawriter($meetingTitle, $meetingText, $positions, $visitor);
+        } else if (isset($_POST['templates'])){
+            $templates = $_POST['templates'];
+            $phrase = new XenForo_Phrase('Templates removed');
+            $model = $this->_getMeetingTemplateModel();
+            $model->removeTemplate($templates);
+        }
 
         // Redirect after post
         return $this->responseRedirect(
             XenForo_ControllerResponse_Redirect::SUCCESS,
             XenForo_Link::buildPublicLink('meetingtemplate'),
-            new XenForo_Phrase('Meeting Pre-baked')
+            $phrase
         );
     }
 

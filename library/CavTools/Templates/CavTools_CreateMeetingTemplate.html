@@ -1,60 +1,65 @@
 <xen:require css="CavTools_CreateMeeting.css" />
 <xen:require css="CavTools_EnlistmentManagement.css" />
+<xen:require js="js/CavTools/meetingPreBake.js" />
 <div class="section">
     <h1 class="heading">Meeting Generator</h1>
     <br />
     <br />
     <form action="{xen:link meetingtemplate/post}" method="post" class="xenForm AutoValidator" data-redirect="on">
 
-        <dl class="ctrlUnit">
+        <dl class="ctrlUnit fullWidth">
             <dd>
-                <SELECT id="list" class="textCtrl">
+                <SELECT id="list" class="textCtrl" onchange="javascript:templateOption();">
                     <OPTION VALUE="A">Create a template</option>
                     <OPTION VALUE="B">View current templates</option>
                 </SELECT>
             </dd>
         </dl>
 
-        <dl class="ctrlUnit fullWidth surplusLabel">
-			<dd><input type="text" name="meeting_title" class="textCtrl titleCtrl" id="ctrl_title_thread_create" maxlength="100" autofocus="true"
-				placeholder="Meeting title..."</dd>
-		</dl>
+        <div id="createTemplate" style="display:block;">
+            <dl class="ctrlUnit fullWidth surplusLabel">
+    			<dd><input type="text" name="meeting_title" class="textCtrl titleCtrl" id="ctrl_title_thread_create" maxlength="100" autofocus="true"
+    				placeholder="Meeting title..."</dd>
+    		</dl>
 
-        <dl class="ctrlUnit fullWidth">
-            <dt></dt>
-            <dd>{xen:raw $editorTemplate}</dd>
-        </dl>
-        <dl class="ctrlUnit">
-            <dt><label for="ctrl_positions">Milpac Positions:</label></dt>
-            <dd>
-                <ul>
-                    <li><select name="positions[]" id="ctrl_secondary_position_ids" size="7" multiple="multiple" class="textCtrl" style="min-width: 300px;">
-                        <xen:foreach loop="$positions" value="$position">
-                            <option value="{$position.position_id}">{$position.position_title}</option>
-                        </xen:foreach>
-                    </select></li>
-                </ul>
-            </dd>
-        </dl>
+            <dl class="ctrlUnit fullWidth">
+                <dt></dt>
+                <dd>{xen:raw $editorTemplate}</dd>
+            </dl>
+            <dl class="ctrlUnit">
+                <dt><label for="ctrl_positions">Milpac Positions:</label></dt>
+                <dd>
+                    <ul>
+                        <li><select name="positions[]" id="ctrl_secondary_position_ids" size="7" multiple="multiple" class="textCtrl" style="min-width: 300px;">
+                            <xen:foreach loop="$positions" value="$position">
+                                <option value="{$position.position_id}">{$position.position_title}</option>
+                            </xen:foreach>
+                        </select></li>
+                    </ul>
+                </dd>
+            </dl>
+        </div>
 
-        <dl class="ctrlUnit">
-            <table>
-                <tr>
-                    <th>Template Title</th>
-                    <th>Template creator</th>
-                    <th>Positions required</th>
-                    <th>Remove Template</th>
-                </tr>
-                <xen:foreach loop="$templates" value="$template">
+        <div id="showTemplates" style="display:none;">
+            <dl class="ctrlUnit">
+                <table>
                     <tr>
-                        <td>{xen:raw $template.meeting_title}</td>
-                        <td>{xen:raw $template.username}</td>
-                        <td>{xen:raw $template.milpacs}</td>
-                        <td><input type="checkbox" name="templates[]" value="{xen:raw $template.meeting_template_id}"></td>
+                        <th>Template Title</th>
+                        <th>Template creator</th>
+                        <th>Positions required</th>
+                        <th>Remove Template</th>
                     </tr>
-                </xen:foreach>
-            </table>
-        </dl>
+                    <xen:foreach loop="$templates" value="$template">
+                        <tr>
+                            <td>{xen:raw $template.meeting_title}</td>
+                            <td>{xen:raw $template.username}</td>
+                            <td>{xen:raw $template.milpacs}</td>
+                            <td><input type="checkbox" name="templates[]" value="{xen:raw $template.meeting_template_id}"></td>
+                        </tr>
+                    </xen:foreach>
+                </table>
+            </dl>
+        </div>
 
         <dl class="ctrlUnit submitUnit">
             <input type="submit" value="Submit" class="button primary" accesskey="s" />
