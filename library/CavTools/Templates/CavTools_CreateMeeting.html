@@ -1,46 +1,64 @@
 <xen:require css="CavTools_CreateMeeting.css" />
+<xen:require js="js/CavTools/meetingCreate.js" />
 <div class="section">
     <h1 class="heading">Meeting Generator</h1>
     <br />
     <br />
     <form action="{xen:link createmeeting/post}" method="post" class="xenForm AutoValidator" data-redirect="on">
 
-        <dl class="ctrlUnit">
-            <dt><label for="ctrl_message">Department</label></dt>
+        <dl class="ctrlUnit fullWidth">
             <dd>
-                <select name="department" class="textCtrl" required>
-                    <xen:foreach loop="$departments" value="$department">
-                        <option value="{xen:raw $department}">{xen:raw $department}</option>
-                    </xen:foreach>
-                </select>
-                <p class="explain">Select the department needed for your meeting. Choose 'Other' if
-                not applicable.</p>
+                <SELECT id="list" class="textCtrl" onchange="javascript:meetingOption();" name="selection">
+                    <OPTION VALUE="A">Create using Templates</option>
+                    <OPTION VALUE="B">Create now</option>
+                </SELECT>
             </dd>
         </dl>
 
-        <dl class="ctrlUnit">
-            <dt><label for="ctrl_message">Meeting topic<br/><br/></label></dt>
-            <dd>
-                <textarea name="meeting_topic" id="ctrl_message" class="textCtrl" rows="1" cols="50"></textarea>
-                <p class="explain">Enter the topic for your meeting</p>
-            </dd>
-        </dl>
+        <div id="createUsingTemplate" style="display:block">
+            <dl class="ctrlUnit fullWidth">
+                <dd>
+                    <SELECT class="textCtrl" name="templates">
+                        <xen:foreach loop="$templates" value="$template">
+                            <option value="{xen:raw $template.meeting_template_id}">{xen:raw $template.meeting_title}
+                                - via {xen:raw $template.creator_rank} {xen:raw $template.creator_username}</option>
+                        </xen:foreach>
+                    </SELECT>
+                </dd>
+            </dl>
+        </div>
 
-        <dl class="ctrlUnit">
-            <dt><label for="ctrl_message">Meeting text<br/><br/></label></dt>
-            <dd>
-                <textarea name="meeting_text" id="ctrl_message" class="textCtrl" rows="12" cols="50"></textarea>
-                <p class="explain">Enter the text including BBCode for your meeting post</p>
-            </dd>
-        </dl>
+        <div id="createMeeting" style="display:none">
+            <dl class="ctrlUnit fullWidth surplusLabel">
+                <dd><input type="text" name="meeting_title" class="textCtrl titleCtrl" id="ctrl_title_thread_create" maxlength="100" autofocus="true"
+                    placeholder="Meeting title..."</dd>
+            </dl>
 
-        <dl class="ctrlUnit">
+            <dl class="ctrlUnit fullWidth">
+                <dt></dt>
+                <dd>{xen:raw $editorTemplate}</dd>
+            </dl>
+            <dl class="ctrlUnit">
+                <dt><label for="ctrl_positions">Milpac Positions:</label></dt>
+                <dd>
+                    <ul>
+                        <li><select name="positions[]" id="ctrl_secondary_position_ids" size="7" multiple="multiple" class="textCtrl" style="min-width: 300px;">
+                            <xen:foreach loop="$positions" value="$position">
+                                <option value="{$position.position_id}">{$position.position_title}</option>
+                            </xen:foreach>
+                        </select></li>
+                    </ul>
+                </dd>
+            </dl>
+        </div>
+
+        <dl class="ctrlUnit fullWidth">
             <dt><label for="ctrl_message">Meeting date</label></dt>
             <dd>
                 <input id="ctrl_message" type="date" class="textCtrl autoSize" name="meeting_date"/>
             </dd>
         </dl>
-        <dl class="ctrlUnit">
+        <dl class="ctrlUnit fullWidth">
             <dt><label for="ctrl_message">Event time (in zulu)</label></dt>
             <dd><select name="meeting_time" class="textCtrl" required>
                 <xen:foreach loop="$timeOptions" value="$timeOption">
@@ -48,24 +66,7 @@
                 </xen:foreach>
             </select></dd>
         </dl>
-        <dl class="ctrlUnit">
-            <div class="col">
-                <dd><input type="checkbox" name="name_agree" value="agreement" required>      Command Staff<br></dd>
-                <dd><input type="checkbox" name="name_agree" value="agreement" required>      1-7 HQ<br></dd>
-                <dd><input type="checkbox" name="name_agree" value="agreement" required>      A/1-7<br></dd>
-            </div>
-            <div class="col">
-                <dd><input type="checkbox" name="name_agree" value="agreement" required>      B/1-7<br></dd>
-                <dd><input type="checkbox" name="name_agree" value="agreement" required>      C/1-7<br></dd>
-                <dd><input type="checkbox" name="name_agree" value="agreement" required>      D/1-7<br></dd>
-            </div>
-            <div class="col">
-                <dd><input type="checkbox" name="name_agree" value="agreement" required>      2-7 HQ<br></dd>
-                <dd><input type="checkbox" name="name_agree" value="agreement" required>      B/2-7<br></dd>
-                <dd><input type="hidden" name="name_agree" value="agreement" required><br></dd>
-            </div>
 
-        </dl>
         <dl class="ctrlUnit submitUnit">
             <dt></dt>
             <dd><input type="submit" value="Submit Application" class="button primary" accesskey="s" /></dd>

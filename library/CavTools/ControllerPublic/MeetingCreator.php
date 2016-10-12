@@ -11,20 +11,10 @@ class CavTools_ControllerPublic_MeetingCreator extends XenForo_ControllerPublic_
 	// - Site options
 	// - Site perms
 
-	/**
-	* GET IMO
-	* BOT VALUES
-	*
-	* @returns array of userID => INT, username => STRING
-	**/
+	// TODO: Option for 'use template' or 'start from scratch'
+	// TODO: Select from template DropDown
+	// TODO: Get user from position in db list
 
-	public function getIMOBot()
-	{
-		// Get values from options
-		$model = $this->_getImoBotModel();
-		$bot = $model->getBot();
-		return $bot;
-	}
 
 	/**
 	* Init view
@@ -53,19 +43,49 @@ class CavTools_ControllerPublic_MeetingCreator extends XenForo_ControllerPublic_
 		//Set Time Zone to UTC
 		date_default_timezone_set("UTC");
 
+		// Prepare templates
+		$meetingModel = $this->_getMeetingTemplateModel();
+		$milpacModel = $this->_getMilpacModel();
+        $templates = $meetingModel->getAllMeetingTemplates();
+        $memberURL = '/members/';
+        for ($i=0;$i<count($templates);$i++) {
+            $user = $milpacModel->getUser($templates[$i]['creator']);
+            $templates[$i]['creator_username'] = $user['username'];
+			$rank = $milpacModel->getRank($templates[$i]['creator']);
+			$templates[$i]['creator_rank'] = $rank['title'];
+        }
+
 		//Get values from options
-		$departments = XenForo_Application::get('options')->departments;
-		$departments = explode(',', $departments);
         $timeOptions = $this->createTimeOptions();
+
+		$milpacModel = $this->_getMilpacModel();
+		$positions = $milpacModel->getAllMilpacPositions();
 
 		// View Parameters
 		$viewParams = array(
 		    'timeOptions' => $timeOptions,
-			'departments' => $departments
+			'templates' => $templates,
+			'positions' => $positions,
+			'defaultMessage' => ""
 		);
 
 		// Send to template to display
-		return $this->responseView('CavTools_ViewPublic_CreateMeeting', 'CavTools_CreateMeeting', $viewParams);
+		return $this->responseView('CavTools_ViewPublic_MeetingCreator', 'CavTools_CreateMeeting', $viewParams);
+	}
+
+	/**
+	* GET IMO
+	* BOT VALUES
+	*
+	* @returns array of userID => INT, username => STRING
+	**/
+
+	public function getIMOBot()
+	{
+		// Get values from options
+		$model = $this->_getImoBotModel();
+		$bot = $model->getBot();
+		return $bot;
 	}
 
     // Get time options 0000 - 2300
@@ -92,20 +112,26 @@ class CavTools_ControllerPublic_MeetingCreator extends XenForo_ControllerPublic_
 		// The user data from the visitor
 		$visitor  = XenForo_Visitor::getInstance()->toArray();
 
-		// Form values
-		$meetingTopic = $this->_input->filterSingle('meeting_topic', XenForo_Input::STRING);
-        $department = $this->_input->filterSingle('department', XenForo_Input::STRING);
-		$meetingText = $this->_input->filterSingle('meeting_text', XenForo_Input::STRING);
+		if ($this->_input->filterSingle('selection', XenForo_Input::STRING) === 'A') {
+			$templateID = $this->_input->filterSingle('template', XenForo_Input::STRING);
+			$templateModel = $this->_getMeetingTemplateModel();
+			$template = $templateModel->getTemplateById($templateID);
+			$meetingTitle = $template['meeting_title'];
+			$meetingText = $template['meeting_text'];
+			$meetingText = XenForo_Helper_String::autoLinkBbCode($meetingText);
+		} else if ($this->_input->filterSingle('selection', XenForo_Input::STRING) === 'B') {
+			// Form values
+	        $meetingTitle = $this->_input->filterSingle('meeting_title', XenForo_Input::STRING);
+	        $meetingText = $this->getHelper('Editor')->getMessageText('message', $this->_input);
+			$meetingText = XenForo_Helper_String::autoLinkBbCode($meetingText);
+		}
+
+		// TODO: check if template is pushed to forum post correctly
+
 		$date = $this->_input->filterSingle('date', XenForo_Input::STRING);
 		$time = $this->_input->filterSingle('time', XenForo_Input::STRING);
-		$attendees = $this->_input->filterSingle('attendees', XenForo_Input::STRING);
-
-		$meetingText = htmlspecialchars($meetingText);
 		$time = htmlspecialchars($time);
 		$date = htmlspecialchars($date);
-		$attendees = htmlspecialchars($attendees);
-		$attendees = str_replace(' ', '', $attendees);
-		$attendees = rtrim($attendees, ",");
 
 		$convertDate = new DateTime("$date");
 		$date = $convertDate->format('U');
@@ -117,12 +143,12 @@ class CavTools_ControllerPublic_MeetingCreator extends XenForo_ControllerPublic_
 		$forumID = XenForo_Application::get('options')->meetingForumID;
 
 		// make thread title + content
-		$title = $this->createTitle($date, $department, $meetingTopic);
-		$content = $this->createContent($date, $department, $visitor, $attendees, $meetingText);
+		$title = $this->createTitle($date, $meetingTitle);
+		$content = $this->createContent($date, $visitor, $meetingText);
 		$threadID = $this->createThread($title, $content, $forumID);
 
-		$this->saveData($department, $meetingText, $visitor,
-						$date, $attendees, $meetingTopic, $time);
+		$this->saveData($meetingText, $visitor,
+						$date, $meetingTitle, $time);
 
         // redirect after post
         return $this->responseRedirect(
@@ -151,30 +177,28 @@ class CavTools_ControllerPublic_MeetingCreator extends XenForo_ControllerPublic_
 		return $writer->getDiscussionId();
 	}
 
-	public function saveData($department, $meetingText, $poster,
-					$meetingDate, $attendees, $meetingTopic, $time)
+	public function saveData($meetingText, $poster,
+					$meetingDate, $meetingTopic, $time)
 	{
 		$dw = XenForo_DataWriter::create('CavTools_DataWriter_Meetings');
-		$dw->set('department', $department);
 		$dw->set('meeting_text', $meetingText);
 		$dw->set('poster_id', $poster['user_id']);
 		$dw->set('posted_date', date('U'));
 		$dw->set('meeting_date', $meetingDate);
-		$dw->set('attendees', $attendees);
 		$dw->set('meeting_topic', $meetingTopic);
 		$dw->set('meeting_time', $time);
 		$dw->save();
 	}
 
-	public function createTitle($date, $department, $topic)
+	public function createTitle($date, $topic)
 	{
 		// Meeting: Department | Topic | 01JAN16
 		$formatedDate = date('dMy', $date); // 13Jun2016
-		$title = $department . " | " . $topic . " | " . $formatedDate;
+		$title = "[Meeting] " . $topic . " | " . $formatedDate;
 		return $title;
 	}
 
-	public function createContent($date, $department, $visitor, $attendees, $meetingText)
+	public function createContent($date, $visitor, $meetingText)
 	{
 		// Get Meeting model
 		$model = $this->_getMeetingModel();
@@ -185,15 +209,13 @@ class CavTools_ControllerPublic_MeetingCreator extends XenForo_ControllerPublic_
 
 		// Make sure we check if they are able to type first because they might not and its bad
 
-		$header = $department . " meeting scheduled for " . $formattedDate . $newline;
+		$header = "meeting scheduled for " . $formattedDate . $newline;
 		$header .= $newline . "Organised by: " . $rank . " " . $visitor['username'] . $newline . $newline;
-
-		$attendance = $this->attendanceTable($attendees) . $newline . $newline;
 
 		$main = $meetingText;
 
 		// Return the content
-		return $header . $attendance . $main;
+		return $header . $main;
 	}
 
 	public function attendanceTable($attendees)
@@ -245,5 +267,10 @@ class CavTools_ControllerPublic_MeetingCreator extends XenForo_ControllerPublic_
 	protected function _getMilpacModel()
 	{
 		return $this->getModelFromCache( 'CavTools_Model_Milpac' );
+	}
+
+	protected function _getMeetingTemplateModel()
+	{
+		return $this->getModelFromCache( 'CavTools_Model_MeetingTemplate' );
 	}
 }
