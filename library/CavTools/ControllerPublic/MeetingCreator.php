@@ -11,8 +11,6 @@ class CavTools_ControllerPublic_MeetingCreator extends XenForo_ControllerPublic_
 	// - Site options
 	// - Site perms
 
-	// TODO: Option for 'use template' or 'start from scratch'
-	// TODO: Select from template DropDown
 	// TODO: Get user from position in db list
 
 
@@ -119,11 +117,14 @@ class CavTools_ControllerPublic_MeetingCreator extends XenForo_ControllerPublic_
 			$meetingTitle = $template['meeting_title'];
 			$meetingText = $template['meeting_text'];
 			$meetingText = XenForo_Helper_String::autoLinkBbCode($meetingText);
+			$positons = $template['positions'];
+
 		} else if ($this->_input->filterSingle('selection', XenForo_Input::STRING) === 'B') {
 			// Form values
 	        $meetingTitle = $this->_input->filterSingle('meeting_title', XenForo_Input::STRING);
 	        $meetingText = $this->getHelper('Editor')->getMessageText('message', $this->_input);
 			$meetingText = XenForo_Helper_String::autoLinkBbCode($meetingText);
+			$positions = serialize($_POST["positions"]);
 		}
 
 		// TODO: check if template is pushed to forum post correctly
@@ -144,7 +145,7 @@ class CavTools_ControllerPublic_MeetingCreator extends XenForo_ControllerPublic_
 
 		// make thread title + content
 		$title = $this->createTitle($date, $meetingTitle);
-		$content = $this->createContent($date, $visitor, $meetingText);
+		$content = $this->createContent($date, $visitor, $meetingText, $positions);
 		$threadID = $this->createThread($title, $content, $forumID);
 
 		$this->saveData($meetingText, $visitor,
@@ -198,7 +199,7 @@ class CavTools_ControllerPublic_MeetingCreator extends XenForo_ControllerPublic_
 		return $title;
 	}
 
-	public function createContent($date, $visitor, $meetingText)
+	public function createContent($date, $visitor, $meetingText, $positions)
 	{
 		// Get Meeting model
 		$model = $this->_getMeetingModel();
@@ -209,36 +210,40 @@ class CavTools_ControllerPublic_MeetingCreator extends XenForo_ControllerPublic_
 
 		// Make sure we check if they are able to type first because they might not and its bad
 
-		$header = "meeting scheduled for " . $formattedDate . $newline;
+		$attendance = $this->attendanceTable($positions);
+
+		$header = "Meeting scheduled for " . $formattedDate . $newline;
 		$header .= $newline . "Organised by: " . $rank . " " . $visitor['username'] . $newline . $newline;
 
-		$main = $meetingText;
+		$main = $meetingText . $newline . $newline . $attendance;
 
 		// Return the content
 		return $header . $main;
 	}
 
-	public function attendanceTable($attendees)
+	public function attendanceTable($positions)
 	{
 		$home = XenForo_Application::get('options')->homeURL;
-		$attendees = explode(',', $attendees);
+		$positions = unserialize($positions);
         $newLine = "\n";
 
 		$table = "[table]" . $newLine . "|-". $newLine  . "| class=\"primaryContent\" colspan=\"3\" align=\"center\" | Meeting Attendance" .
             $newLine . "|- " . $newLine . "| style=\"font-style: italic\" align=\"center\" |Member" . $newLine . "| style=\"font-style: italic\" align=\"center\" |Position" .
             $newLine . "| style=\"font-style: italic\" align=\"center\" |Status" . $newLine . "|-" . $newLine;
 
+		$spoiler = "[spoiler]";
 
 		// Generate table
-	    foreach($attendees as $attendee) {
+	    foreach($positions as $position) {
 
 			// get milpac model
 			$model = $this->_getMilpacModel();
-
-	        $position = $model->milpacsPosition($attendee);
-	        $user = $model->getUser($attendee);
+			$user = $model->getUserFromPosId($position);
 			$username = $user['username'];
 			$userID = $user['user_id'];
+			$title = $model->milpacsPosition($userID);
+			$rank  = $model->getRank($userID);
+			$rank  = $rank['title'];
 			$status = "Waiting";
 
 			// TODO:
@@ -246,12 +251,18 @@ class CavTools_ControllerPublic_MeetingCreator extends XenForo_ControllerPublic_
 			// username for things like the CSC
 
 	        // Build username
-	        $username = '[B][URL="http://'.$home.'/members/'.$userID.'/"]'. $username.'[/URL][/B]';
+	        $userLink = '[B][URL="http://'.$home.'/members/'.$userID.'/"]'. $username.'[/URL][/B]';
 
-	        $table .= "| align=\"center\" |".$username." || align=\"center\" |".$position." || align=\"center\" |".$status. $newLine . "|-" . $newLine;
+	        $table .= "| align=\"center\" |".$rank." ".$userLink." || align=\"center\" |".$title." || align=\"center\" |".$status. $newLine . "|-" . $newLine;
+
+			$spoiler .= "@".$username." ";
 	    }
 	    // Close table
-	    return $table .= "[/table]";
+	    $table .= "[/table]";
+		// Close spoiler
+		$spoiler .= "[/spoiler]";
+
+		return $table . $newLine . $newLine . $spoiler;
 	}
 
 	protected function _getImoBotModel()
