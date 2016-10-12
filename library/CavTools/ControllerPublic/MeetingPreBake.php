@@ -37,8 +37,6 @@ class CavTools_ControllerPublic_MeetingPreBake extends XenForo_ControllerPublic_
             $templates[$i]['milpacs'] = $reqPositions;
         }
 
-        print_r($templates);
-
         // Set Time Zone to UTC
         date_default_timezone_set("UTC");
 
