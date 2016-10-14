@@ -81,12 +81,19 @@ class CavTools_Model_Milpac extends XenForo_Model {
 
     public function getUserFromPosId($posID)
     {
-        $query = $this->_getDb()->fetchRow("
-        SELECT position_id, user_id
+        return $this->_getDb()->fetchAll("
+        SELECT position_id, user_id, username
         FROM xf_pe_roster_user_relation
         WHERE position_id = '$posID'
         ");
+    }
 
-        return $this->getUser($query['user_id']);
+    public function getTitleFromPos($posID)
+    {
+        return $this->_getDb()->fetchRow("
+        SELECT position_title
+        FROM xf_pe_roster_position
+        WHERE position_id = '$posID'
+        ");
     }
 }

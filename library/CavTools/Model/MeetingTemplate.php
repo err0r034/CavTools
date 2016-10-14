@@ -6,8 +6,8 @@ class CavTools_Model_MeetingTemplate extends XenForo_Model
     {
         return $this->_getDb()->fetchRow("
             SELECT *
-            FROM xf_ct_regi_meetings
-            WHERE meeting_id = '$ID'
+            FROM xf_ct_regi_meeting_templates
+            WHERE meeting_template_id = '$ID'
         ");
     }
 

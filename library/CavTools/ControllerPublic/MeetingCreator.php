@@ -111,13 +111,13 @@ class CavTools_ControllerPublic_MeetingCreator extends XenForo_ControllerPublic_
 		$visitor  = XenForo_Visitor::getInstance()->toArray();
 
 		if ($this->_input->filterSingle('selection', XenForo_Input::STRING) === 'A') {
-			$templateID = $this->_input->filterSingle('template', XenForo_Input::STRING);
+			$templateID = $this->_input->filterSingle('templates', XenForo_Input::STRING);
 			$templateModel = $this->_getMeetingTemplateModel();
 			$template = $templateModel->getTemplateById($templateID);
 			$meetingTitle = $template['meeting_title'];
 			$meetingText = $template['meeting_text'];
 			$meetingText = XenForo_Helper_String::autoLinkBbCode($meetingText);
-			$positons = $template['positions'];
+			$positions = $template['positions'];
 
 		} else if ($this->_input->filterSingle('selection', XenForo_Input::STRING) === 'B') {
 			// Form values
@@ -155,7 +155,7 @@ class CavTools_ControllerPublic_MeetingCreator extends XenForo_ControllerPublic_
         return $this->responseRedirect(
             XenForo_ControllerResponse_Redirect::SUCCESS,
             XenForo_Link::buildPublicLink('threads', array('thread_id' => $threadID)), // 7cav.us/threads/123
-            new XenForo_Phrase('event_created')
+            new XenForo_Phrase('event created')
         );
 	}
 
@@ -224,7 +224,6 @@ class CavTools_ControllerPublic_MeetingCreator extends XenForo_ControllerPublic_
 	public function attendanceTable($positions)
 	{
 		$home = XenForo_Application::get('options')->homeURL;
-		$positions = unserialize($positions);
         $newLine = "\n";
 
 		$table = "[table]" . $newLine . "|-". $newLine  . "| class=\"primaryContent\" colspan=\"3\" align=\"center\" | Meeting Attendance" .
@@ -232,6 +231,7 @@ class CavTools_ControllerPublic_MeetingCreator extends XenForo_ControllerPublic_
             $newLine . "| style=\"font-style: italic\" align=\"center\" |Status" . $newLine . "|-" . $newLine;
 
 		$spoiler = "[spoiler]";
+		$positions = unserialize($positions);
 
 		// Generate table
 	    foreach($positions as $position) {
@@ -239,23 +239,44 @@ class CavTools_ControllerPublic_MeetingCreator extends XenForo_ControllerPublic_
 			// get milpac model
 			$model = $this->_getMilpacModel();
 			$user = $model->getUserFromPosId($position);
-			$username = $user['username'];
-			$userID = $user['user_id'];
-			$title = $model->milpacsPosition($userID);
-			$rank  = $model->getRank($userID);
-			$rank  = $rank['title'];
-			$status = "Waiting";
 
-			// TODO:
-			// Generalize, we don't want to enter each
-			// username for things like the CSC
+			if (count($user) > 1 && isset($user[0])) {
+				for ($i=0;$i<count($user);$i++) {
+					$username = $user[$i]['username'];
+					$userID = $user[$i]['user_id'];
+					$title = $model->milpacsPosition($userID);
+					$rank  = $model->getRank($userID);
+					$rank  = $rank['title'];
+					$status = "Waiting";
 
-	        // Build username
-	        $userLink = '[B][URL="http://'.$home.'/members/'.$userID.'/"]'. $username.'[/URL][/B]';
+			        // Build username
+			        $userLink = '[B][URL="http://'.$home.'/members/'.$userID.'/"]'. $username.'[/URL][/B]';
 
-	        $table .= "| align=\"center\" |".$rank." ".$userLink." || align=\"center\" |".$title." || align=\"center\" |".$status. $newLine . "|-" . $newLine;
+			        $table .= "| align=\"center\" |".$rank." ".$userLink." || align=\"center\" |".$title." || align=\"center\" |".$status. $newLine . "|-" . $newLine;
 
-			$spoiler .= "@".$username." ";
+					$spoiler .= "@".$username." ";
+				}
+			} else if (count($user) === 1 && isset($user[0])){
+				$username = $user[0]['username'];
+				$userID = $user[0]['user_id'];
+				$title = $model->milpacsPosition($userID);
+				$rank  = $model->getRank($userID);
+				$rank  = $rank['title'];
+				$status = "Waiting";
+
+		        // Build username
+		        $userLink = '[B][URL="http://'.$home.'/members/'.$userID.'/"]'. $username.'[/URL][/B]';
+
+		        $table .= "| align=\"center\" |".$rank." ".$userLink." || align=\"center\" |".$title." || align=\"center\" |".$status. $newLine . "|-" . $newLine;
+
+				$spoiler .= "@".$username." ";
+			} else {
+				$username = 'None';
+				$title = $model->getTitleFromPos($position);
+				$status = "Waiting";
+
+				$table .= "| align=\"center\" |".$username." || align=\"center\" |".$title." || align=\"center\" |".$status. $newLine . "|-" . $newLine;
+			}
 	    }
 	    // Close table
 	    $table .= "[/table]";
@@ -263,6 +284,12 @@ class CavTools_ControllerPublic_MeetingCreator extends XenForo_ControllerPublic_
 		$spoiler .= "[/spoiler]";
 
 		return $table . $newLine . $newLine . $spoiler;
+	}
+
+	function isMultiValueArray( $arr )
+	{
+	    rsort( $arr );
+	    return isset( $arr[1] );
 	}
 
 	protected function _getImoBotModel()
