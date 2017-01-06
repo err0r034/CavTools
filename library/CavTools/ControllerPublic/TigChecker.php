@@ -73,6 +73,24 @@ class CavTools_ControllerPublic_TigChecker extends XenForo_ControllerPublic_Abst
         $lowData  = "";
         $userUrl  = '/rosters/profile?uniqueid=';
 
+        $tig = array();
+        foreach ($highTig as $key => $row) {
+            $tig[$key] = $row['tig'];
+        }
+        array_multisort($tig, SORT_DESC, $highTig);
+
+        $tig = array();
+        foreach ($medTig as $key => $row) {
+            $tig[$key] = $row['tig'];
+        }
+        array_multisort($tig, SORT_DESC, $medTig);
+
+        $tig = array();
+        foreach ($lowTig as $key => $row) {
+            $tig[$key] = $row['tig'];
+        }
+        array_multisort($tig, SORT_DESC, $lowTig);
+
         foreach ($highTig as $user) {
             $rankTitle = $milpacModel->getRankTitle($user['rank_id']);
             $highData .= "<tr><td><b>" . $rankTitle . "</td><td><a href=" . $userUrl .
