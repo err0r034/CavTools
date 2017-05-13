@@ -192,7 +192,7 @@ class CavTools_ControllerPublic_XmlGenerator extends XenForo_ControllerPublic_Ab
                                 case $rankBG : $nickPrefix = "HMar"; $nameTitle = "High Marshal "; break;
                                 case $rankCOL: $nickPrefix = "Mar"; $nameTitle = "Marshal "; break;
                                 case $rankLTC: $nickPrefix = "JMar"; $nameTitle = "Junior Marshal "; break;
-                                case $rankMAJ: $nickPrefix = "MAJ."; $nameTitle = "Major "; break;
+                                case $rankMAJ: $nickPrefix = "Maj"; $nameTitle = "Major "; break;
                                 case $rankCPT: $nickPrefix = "Capt"; $nameTitle = "Captain "; break;
                                 case $rank1LT: $nickPrefix = "Lt"; $nameTitle = "Lieutenant "; break;
                                 case $rank2LT: $nickPrefix = "ENS"; $nameTitle = "Ensign "; break;
