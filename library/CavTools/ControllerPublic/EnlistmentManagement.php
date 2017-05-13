@@ -836,7 +836,7 @@ class CavTools_ControllerPublic_EnlistmentManagement extends XenForo_ControllerP
         if you will put forth a contact. No one lives alone and can only grow in stature as a human being with positive reaction with others of equal
         nobility and honor in what they do.“".$newLine."CSM.Cold.R[/COLOR]";
 
-        $teamspeak = "TeamSpeak IP: ts3.7Cav.us".$newLine."TeamSpeak PW: 7thCavalry";
+        $teamspeak = "TeamSpeak IP: TEAMSPEAK".$newLine."TeamSpeak PW: TEAMSPEAK";
 
         $notes = "[B]**NOTE**[/B]".$newLine."S1 and DI's please note".$newLine.$newLine."First Name: ".$firstName.$newLine."Last Name: ".$lastName.
             $newLine.$newLine;
